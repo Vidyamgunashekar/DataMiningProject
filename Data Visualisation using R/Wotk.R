@@ -7,92 +7,40 @@ library(dplyr)
 library(plotly)
 
 
-songs.df <- read.csv("songs_updated_v3.csv")
+songs.df <- read.csv("songs_updated_v3.csv", stringsAsFactors = TRUE)
 summary(songs.df)
+colnames(songs.df)
 #Cloning Dataset to avoid tampering
 Spotify <- songs.df
 
-library(plotly)
 
-fig1 <- plot_ly(data = Spotify,x = ~popularity, y = ~acousticness,
-                type = 'scatter', mode = 'markers', 
-                name="Acousticness",marker=list(size = 3,
-                                         color = ~acousticness)) %>%
-  layout(xaxis = list(title = 'Popularity',range = c(10,100)), yaxis = list(title = 'Acousticness'))
+#Number of songs in the year 1998,1999 and 2020
+nrow(Spotify[Spotify$year < 2000,]) +nrow(Spotify[Spotify$year == 2020,])
+#42
 
-fig1
-fig2 <- plot_ly(data = Spotify,x = ~popularity, y = ~speechiness, type = 'scatter', mode = 'markers', 
-                name="Speechiness",marker=list(size = 3,
-                                          color = ~speechiness)) %>%
-  layout(xaxis = list(title = 'Popularity',range = c(10,100)), yaxis = list(title = 'Speechiness'))
+#Number of songs with popularity score < 10
+nrow(Spotify[Spotify$popularity < 10,])
+#179
+
+#which year they belong
+group_by(Spotify[Spotify$popularity < 10,])
+Pop10 <- Spotify[Spotify$popularity < 10,] %>% group_by(year)
+Pop10  %>% arrange(year)
+Pop10$year
+
+#popularity score across each year
+library(dplyr)
+selected.var <- c(3,5,6,7,8,9,10,11,12,13,14,15,16,17)
+
+year_average.df=Spotify[selected.var]
+year_average.df
+
+year_average <- year_average.df %>% group_by(year) %>% 
+  summarise(Total_Popularity=sum(popularity))
+print(year_average)
+View(year_average)
 
 
-fig3 <- plot_ly(data = Spotify,x = ~popularity, y = ~instrumentalness, type = 'scatter', mode = 'markers', 
-                name="Instrumentalness",marker=list(size = 3,
-                                       color = ~instrumentalness)) %>%
-  layout(xaxis = list(title = 'Popularity',range = c(10,100)), yaxis = list(title = 'Instrumentalness'))
-
-
-fig4 <- plot_ly(data = Spotify,x = ~popularity, y = ~tempo, type = 'scatter', mode = 'markers', 
-                name="Tempo",marker=list(size = 3,
-                                            color = ~tempo)) %>%
-  layout(xaxis = list(title = 'Popularity',range = c(10,100)), yaxis = list(title = 'Tempo'))
-
-fig <- subplot(fig1, fig2, fig3, fig4, nrows = 2, titleY = TRUE, titleX = TRUE, margin = 0.1)%>% 
-  layout(
-    #title = 'Characteristics vs. Popularity',
-         plot_bgcolor='#e5ecf6', 
-         xaxis = list( 
-           zerolinecolor = '#ffff', 
-           zerolinewidth = 2, 
-           gridcolor = 'ffff'), 
-         yaxis = list( 
-           zerolinecolor = '#ffff', 
-           zerolinewidth = 2, 
-           gridcolor = 'ffff'))
-
-annotations = list( 
-  list( 
-    x = 0.2,  
-    y = 1.0,  
-    text = "Acousticness vs. Popularity",  
-    xref = "paper",  
-    yref = "paper",  
-    xanchor = "center",  
-    yanchor = "bottom",  
-    showarrow = FALSE 
-  ),  
-  list( 
-    x = 0.8,  
-    y = 1,  
-    text = "Speechiness vs. Popularity",  
-    xref = "paper",  
-    yref = "paper",  
-    xanchor = "center",  
-    yanchor = "bottom",  
-    showarrow = FALSE 
-  ),  
-  list( 
-    x = 0.2,  
-    y = 0.4,  
-    text = "Instrumentalness vs. Popularity",  
-    xref = "paper",  
-    yref = "paper",  
-    xanchor = "center",  
-    yanchor = "bottom",  
-    showarrow = FALSE 
-  ),
-  list( 
-    x = 0.8,  
-    y = 0.4,  
-    text = "Tempo vs. Popularity",  
-    xref = "paper",  
-    yref = "paper",  
-    xanchor = "center",  
-    yanchor = "bottom",  
-    showarrow = FALSE 
-  ))
-
-fig <- fig %>%layout(annotations = annotations) 
-#options(warn = -1)
-fig
+# Grouped
+ggplot(year_average, aes(fill=Total_Popularity, y=Total_Popularity, x=year)) + 
+  geom_bar(position="dodge", stat="identity")
