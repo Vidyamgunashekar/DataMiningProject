@@ -1,3 +1,5 @@
+# Get 5 random Numbers from 5 to 99
+floor(runif(9, min=1, max=9))
 
 #install.packages("magrittr") # package installations are only needed the first time you use it
 #install.packages("dplyr")  # alternative installation of the %>%
